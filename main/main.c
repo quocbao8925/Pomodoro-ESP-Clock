@@ -64,6 +64,8 @@ void app_main(void) {
     u8g2_esp32_hal.bus.i2c.sda = 8;
     u8g2_esp32_hal.bus.i2c.scl = 9;
 
+    //u8g2_esp32_hal.bus.i2c.clk_speed = 400000;
+
     u8g2_esp32_hal_init(u8g2_esp32_hal);
     
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(&u8g2, U8G2_R0, u8g2_esp32_i2c_byte_cb, u8g2_esp32_gpio_and_delay_cb);

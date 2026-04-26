@@ -4,7 +4,7 @@
 #include <stdio.h> 
 
 
-void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer) {
+void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer, bool is_serial) {
     u8g2_ClearBuffer(u8g2);
     u8g2_SetFontDirection(u8g2, 0);
 
@@ -22,12 +22,17 @@ void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer) {
     u8g2_DrawStr(u8g2, 4, 60, min_str);
 
     if (!data.is_24h) {
-        u8g2_SetFont(u8g2, u8g2_font_5x8_tf); 
-        u8g2_DrawStr(u8g2, 36, 60, data.is_pm ? "PM" : "AM");
+        u8g2_SetFont(u8g2, u8g2_font_6x13B_tf); 
+        u8g2_DrawStr(u8g2, 40, 48,(data.is_pm ? "P" : "A"));
+        u8g2_DrawStr(u8g2, 40, 60, "M");
     }
     if (is_running_timer) {
         u8g2_SetFont(u8g2, u8g2_font_open_iconic_app_1x_t); 
         u8g2_DrawGlyph(u8g2, 100, 62, 0x48);
+    }
+    if (is_serial) {
+        u8g2_SetFont(u8g2, u8g2_font_open_iconic_embedded_1x_t);
+        u8g2_DrawGlyph(u8g2, 110, 62, 0x48); // UNLOCK icon
     }
     // Right area: Weather and info
     u8g2_SetFont(u8g2, u8g2_font_6x10_tf);
@@ -228,32 +233,35 @@ void draw_wifi_config_ui(u8g2_t *u8g2, bool is_serial_mode, uint8_t countdown, u
     u8g2_ClearBuffer(u8g2);
     u8g2_SetFontDirection(u8g2, 2); 
 
-    // 1. Tên thiết bị góc trái trên
-    u8g2_SetFont(u8g2, u8g2_font_5x8_tf);
-    u8g2_DrawStr(u8g2, 126, 56, "QBs-ESP32C3-MINI"); // 128-2=126, 64-8=56
-
-    // 2. Logo WI CONFIG FI
-    u8g2_SetFont(u8g2, u8g2_font_logisoso16_tf);
-    u8g2_DrawStr(u8g2, 112, 28, "WI"); // 128-16=112, 64-36=28
+    u8g2_SetFont(u8g2, u8g2_font_6x10_tf);
+    u8g2_DrawStr(u8g2, 126, 56, "CONFIG URL:"); // 128-2=126, 64-8=56
+    u8g2_DrawStr(u8g2, 126, 46, "quocbao8925.github.io");
+    u8g2_DrawStr(u8g2, 126, 36, "/pomodoro/");
+    u8g2_DrawLine(u8g2, 0, 32, 128, 32); // Box around "CONFIG URL"
+    // u8g2_SetFont(u8g2, u8g2_font_logisoso16_tf);
+    // u8g2_DrawStr(u8g2, 112, 28, "WI"); // 128-16=112, 64-36=28
+    // u8g2_SetFont(u8g2, u8g2_font_logisoso16_tf);
+    // u8g2_DrawStr(u8g2, 112, 46, "FI");
     
-    u8g2_SetFont(u8g2, u8g2_font_5x8_tf);
-    u8g2_DrawStr(u8g2, 81, 34, "CONFIG"); // 128-47=81, 64-30=34
     
-    u8g2_SetFont(u8g2, u8g2_font_logisoso16_tf);
-    u8g2_DrawStr(u8g2, 112, 46, "FI"); // 128-16=112, 64-74 = -10 (Sẽ bị tràn ra ngoài màn hình)
 
-    // 3. Số giây đếm ngược
+
     char buf[16];
     if (is_serial_mode) {
-        snprintf(buf, sizeof(buf), "%02ds", countdown);
+        snprintf(buf, sizeof(buf), "[ %02ds ]", countdown);
         u8g2_SetFont(u8g2, u8g2_font_7x14B_tf);
-        u8g2_DrawStr(u8g2, 74, 12, buf); // 128-54=74, 64-52=12
+        u8g2_DrawStr(u8g2, 126, 12, buf);
+
+        u8g2_SetFont(u8g2, u8g2_font_open_iconic_thing_2x_t);
+        u8g2_DrawGlyph(u8g2, 20, 12, 0x44); // UNLOCK icon
     } else {
+        u8g2_SetFont(u8g2, u8g2_font_open_iconic_thing_2x_t);
+        u8g2_DrawGlyph(u8g2, 20, 10, 0x4F); // LOCK icon
+
         u8g2_SetFont(u8g2, u8g2_font_5x8_tf);
-        u8g2_DrawStr(u8g2, 93, 12, "PLUG USB & HOLD"); // 128-35=93, 64-52=12
+        u8g2_DrawStr(u8g2, 126, 12, "PLUG USB & HOLD"); 
     }
 
-    // 4. Thanh Bar tiến trình (Đáy màn hình)
     if (is_serial_mode) {
         uint8_t w = (countdown * 128) / 45;
         u8g2_DrawBox(u8g2, 0, 4, w, 4); // 128-0=128, 64-60=4
