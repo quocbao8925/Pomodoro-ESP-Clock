@@ -1,0 +1,40 @@
+menu "Project Configuration"
+
+    config WEATHER_API_KEY
+        string "OpenWeatherMap API Key"
+        default ""
+        help
+            Enter your OpenWeatherMap API key here. You can obtain an API key 
+            by signing up at https://openweathermap.org/api. This key is 
+            required for the application to fetch weather data.
+
+    config LAT
+        string "Latitude"
+        default ""
+        help
+            Enter the latitude of your location. This is required for the 
+            application to fetch accurate weather data. You can find your 
+            latitude using online tools or maps.
+
+    config LON
+        string "Longitude"
+        default ""
+        help
+            Enter the longitude of your location. This is required for the 
+            application to fetch accurate weather data. You can find your 
+            longitude using online tools or maps.
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            Enter the SSID of your Wi-Fi network. This is required for the
+            application to connect to the internet and fetch weather data.
+
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        help
+            Enter the password of your Wi-Fi network. This is required for the
+            application to connect to the internet and fetch weather data.
+
+endmenu
