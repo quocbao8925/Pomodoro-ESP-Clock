@@ -2,6 +2,7 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "driver/gpio.h"
+#include "esp_pm.h"
 
 #include "u8g2.h"
 #include "u8g2_esp32_hal.h"
@@ -11,49 +12,57 @@
 #include "buzzer.h"
 #include "pomodoro.h"
 
+#include "nvs_flash.h"
+
 #define BUZZER_PIN GPIO_NUM_4
 
-// Khởi tạo các biến toàn cục (Đã khai báo extern trong globals.h)
+// Initialize global variables (extern in globals.h)
 pomodoro_t my_pomo_25 = {
     .minutes = 25,
     .seconds = 0,
-    .is_running = false,
-    .is_break = false,
+    .target_minutes = 25,
     .flash_timer = 0,
-    .target_minutes = 25
+    .is_running = false,
+    .is_break = false
 };
+
 pomodoro_t my_pomo_5 = {
     .minutes = 5,
     .seconds = 0,
-    .is_running = false,
-    .is_break = true,
+    .target_minutes = 5,
     .flash_timer = 0,
-    .target_minutes = 5
+    .is_running = false,
+    .is_break = true
 };
-
 
 u8g2_t u8g2;
 SemaphoreHandle_t i2c_mutex;
 
-int idle_seconds = 0;
+uint16_t idle_seconds = 0;
 bool is_display_off = false;
 uint8_t current_screen = 0; 
 
 bool is_24h_format = false;
 uint8_t current_horizontal_ui = 0; 
 
-int battery_percent = 100; 
-int buzzer_level = 1;     
-int buzzer_pitch = 2; 
-int settings_selection = 0; 
 
 void app_main(void) {
+    // Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        nvs_flash_erase();
+        nvs_flash_init();
+    }
 
-    // 2. Khởi tạo U8g2 (Màn hình OLED)
+    esp_pm_config_t pm_config = {
+        .max_freq_mhz       = 80,   // 80 MHz is enough for I2C, display, JSON parsing.
+        .min_freq_mhz       = 60,   // Drop to 60 MHz when fully idle.
+        .light_sleep_enable = true, // Auto light sleep between task wakeups.
+    };
+    esp_pm_configure(&pm_config);
     u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
     u8g2_esp32_hal.bus.i2c.sda = 8;
     u8g2_esp32_hal.bus.i2c.scl = 9;
-
 
     u8g2_esp32_hal_init(u8g2_esp32_hal);
     
@@ -62,16 +71,13 @@ void app_main(void) {
     u8g2_InitDisplay(&u8g2);
     u8g2_SetPowerSave(&u8g2, 0);
 
-    // 3. Khởi tạo Buzzer
     buzzer_init(BUZZER_PIN);
-    // buzzer_set_level(buzzer_level);
 
-    // 4. Khởi tạo hệ thống Pomodoro
     pomodoro_init(&my_pomo_25);
     pomodoro_init(&my_pomo_5);
 
-    // 5. Khởi chạy các Task song song của FreeRTOS
-    // (Lưu ý: bmi160_init() sẽ tự động được gọi bên trong gyro_task)
     xTaskCreate(gyro_task, "gyro_task", 3072, NULL, 6, NULL);
     xTaskCreate(display_task, "display_task", 4096, NULL, 5, NULL);
+    xTaskCreate(wifi_sync_task, "wifi_sync_task", 4096, NULL, 4, NULL);
+    xTaskCreate(serial_listen_task, "serial_task", 4096, NULL, 3, NULL);
 }

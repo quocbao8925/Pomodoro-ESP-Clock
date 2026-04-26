@@ -1,0 +1,16 @@
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) 5.5.1 Project Minimal Configuration
+#
+CONFIG_IDF_TARGET="esp32c3"
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+# Fill your API and LATLON of your location here.
+CONFIG_WEATHER_API_KEY=""
+CONFIG_LAT=""
+CONFIG_LON=""
+CONFIG_WIFI_SSID=""
+CONFIG_WIFI_PASSWORD=""
+
+CONFIG_PM_ENABLE=y
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_80=y
+CONFIG_FREERTOS_USE_TICKLESS_IDLE=y
