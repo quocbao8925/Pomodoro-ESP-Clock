@@ -14,21 +14,23 @@
 
 static QueueHandle_t buzzer_queue;
 
+extern uint8_t sys_volume;
+
+
 static void buzzer_task(void *arg) {
     buzzer_pattern_t pattern;
-    
+    uint32_t freq = BUZZER_FREQ;
+    ledc_set_freq(BUZZER_LEDC_MODE, BUZZER_LEDC_TIMER, freq);
+
     while(1) {
         if (xQueueReceive(buzzer_queue, &pattern, portMAX_DELAY)) {
-
-            uint32_t duty = BUZZER_DUTY;
-            uint32_t freq = BUZZER_FREQ;
             
-            ledc_set_freq(BUZZER_LEDC_MODE, BUZZER_LEDC_TIMER, freq);
+            uint32_t current_duty = (3072 * sys_volume) / 100;
             
             switch (pattern) {
                 case BEEP_TEST:
                     for (uint8_t i = 0; i < 8; i++) {
-                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
                         
@@ -36,7 +38,7 @@ static void buzzer_task(void *arg) {
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(60)); 
                         
-                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
                         
@@ -47,7 +49,7 @@ static void buzzer_task(void *arg) {
                     break;
                 case BEEP_POMODORO_DONE:
                     for (uint8_t i = 0; i < 8; i++) {
-                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
                         
@@ -55,7 +57,7 @@ static void buzzer_task(void *arg) {
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(60)); 
                         
-                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
                         
@@ -65,16 +67,16 @@ static void buzzer_task(void *arg) {
                     }
                     break;
                 case BEEP_LONG:
-                    ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                    ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                     ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
-                    vTaskDelay(pdMS_TO_TICKS(800));
+                    vTaskDelay(pdMS_TO_TICKS(700));
                     
                     ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, 0);
                     ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                     vTaskDelay(pdMS_TO_TICKS(200));
                     break;
                 case BEEP_SHORT:
-                    ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                    ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                     ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                     vTaskDelay(pdMS_TO_TICKS(200));
                     
@@ -84,7 +86,7 @@ static void buzzer_task(void *arg) {
                     break;
                 case BEEP_TWICE:
                     for (uint8_t i = 0; i < 2; i++) {
-                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, duty);
+                        ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(100)); 
                         

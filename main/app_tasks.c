@@ -34,6 +34,7 @@ static uint8_t test = 0;
 
 uint8_t loading_progress = 0; 
 bool is_wifi_connected = false;
+
 int8_t current_temp = 0;
 uint8_t current_humidity = 0;
 uint16_t weather_icon_code = 0;
@@ -41,6 +42,9 @@ uint16_t weather_icon_code = 0;
 bool is_serial_mode = false;
 uint8_t serial_countdown = 0;
 
+uint8_t sys_volume = 50;              // Default buzzer volume 50%
+uint8_t display_timeout_sec = 15;     // Default screen timeout 15s
+extern bool is_24h_format;            // Declared in main.c
 
 void serial_listen_task(void *pvParameter) {
     usb_serial_jtag_driver_config_t usb_config = USB_SERIAL_JTAG_DRIVER_CONFIG_DEFAULT();
@@ -63,12 +67,21 @@ void serial_listen_task(void *pvParameter) {
                             cJSON *s = cJSON_GetObjectItem(root, "s");
                             cJSON *p = cJSON_GetObjectItem(root, "p");
                             cJSON *t = cJSON_GetObjectItem(root, "t");
+
+                            cJSON *v = cJSON_GetObjectItem(root, "v");   // Volume
+                            cJSON *h24 = cJSON_GetObjectItem(root, "h"); // 24h format
+                            cJSON *o = cJSON_GetObjectItem(root, "o");   // Screen timeout
                             
                             if (s && p && t) {
                                 nvs_handle_t h;
                                 if (nvs_open("wifi", NVS_READWRITE, &h) == ESP_OK) {
                                     nvs_set_str(h, "ssid", s->valuestring);
                                     nvs_set_str(h, "pass", p->valuestring);
+
+                                    if (v) nvs_set_u8(h, "vol", (uint8_t)v->valueint);
+                                    if (h24) nvs_set_u8(h, "24h", (uint8_t)h24->valueint);
+                                    if (o) nvs_set_u8(h, "tout", (uint8_t)o->valueint);
+                                    
                                     nvs_commit(h);
                                     nvs_close(h);
                                 }
@@ -342,7 +355,7 @@ void gyro_task(void *pvParameter) {
         current_screen = new_scr;
 
         if (target_mode && !is_display_off) {
-            load_ms += 0;
+            load_ms += 200;
             uint16_t limit = (target_mode == 3) ? 5000 : 3000;
             loading_progress = (target_mode == 3) ? ((load_ms * 100) / 5000) : ((load_ms * 100) / 3000 + 30);
             
@@ -350,11 +363,11 @@ void gyro_task(void *pvParameter) {
                 if (target_mode == 3) {
                     is_serial_mode = true;
                     serial_countdown = 45; 
-                    buzzer_play_pattern(BEEP_SHORT);
+                    buzzer_play_pattern(BEEP_LONG);
                 } else {
                     pomodoro_start_new(target_mode == 25 ? &my_pomo_25 : &my_pomo_5, target_mode);
                     pomodoro_reset(target_mode == 25 ? &my_pomo_5 : &my_pomo_25); 
-                    buzzer_play_pattern(BEEP_LONG);
+                    buzzer_play_pattern(BEEP_SHORT);
                 }
                 target_mode = 0; load_ms = 0; loading_progress = 0;
             }
@@ -389,25 +402,50 @@ uint8_t get_weather_icon_hex(uint16_t weather_code, bool is_night) {
 
 // Display interface
 void display_task(void *pvParameter) {
-    static uint8_t loop_count = 0;
+    
+    nvs_handle_t h;
+    if (nvs_open("wifi", NVS_READONLY, &h) == ESP_OK) {
+        nvs_get_u8(h, "vol", &sys_volume);
+        
+        uint8_t h24_val = 0;
+        if (nvs_get_u8(h, "24h", &h24_val) == ESP_OK) {
+            is_24h_format = (h24_val == 1);
+        }
+        
+        nvs_get_u8(h, "tout", &display_timeout_sec);
+        nvs_close(h);
+    }
+
+    if (sys_volume > 100) sys_volume = 50; 
+    if (display_timeout_sec < 5 || display_timeout_sec > 60) display_timeout_sec = 15;
+
+    TickType_t last_tick = xTaskGetTickCount();
+
     while(1) {
-        if (current_screen == 2 || current_screen == 3) {
-            idle_seconds = 0; 
-        } else if (++loop_count >= 10) { 
-            idle_seconds++; 
-            loop_count = 0; 
+
+        TickType_t now = xTaskGetTickCount();
+        
+
+        if (now - last_tick >= pdMS_TO_TICKS(1000)) {
+
+            if (current_screen == 3) {
+                idle_seconds = 0; 
+            } else { 
+                idle_seconds++; 
+            }
+            last_tick = now; 
         }
 
-        if (idle_seconds > 15 && !is_display_off) {
+        if (idle_seconds > display_timeout_sec && !is_display_off) {
             u8g2_SetPowerSave(&u8g2, 1); 
             is_display_off = true;
             bmi160_set_accel_lowpower(); // Put gyro in low-power mode when display sleeps
         }
 
-        time_t now; 
+        time_t now_time; 
         struct tm ti;
-        time(&now); 
-        localtime_r(&now, &ti);
+        time(&now_time); 
+        localtime_r(&now_time, &ti);
         uint8_t h = ti.tm_hour;
         uint8_t m = ti.tm_min;
         bool is_pm = false;
@@ -436,7 +474,7 @@ void display_task(void *pvParameter) {
                     strncpy(sq.city, "OFFLINE", sizeof(sq.city));
                     sq.icon = 0;
                 }
-                draw_classic_squix(&u8g2, sq, my_pomo_5.is_running || my_pomo_25.is_running);
+                draw_classic_squix(&u8g2, sq, my_pomo_5.is_running || my_pomo_25.is_running, is_serial_mode);
 
             } else if (current_screen == 1) {
                 draw_pomodoro_vertical(&u8g2, &my_pomo_25, true, loading_progress);
