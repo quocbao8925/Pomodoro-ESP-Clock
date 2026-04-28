@@ -36,7 +36,6 @@ pomodoro_t my_pomo_5 = {
 };
 
 u8g2_t u8g2;
-SemaphoreHandle_t i2c_mutex;
 
 uint16_t idle_seconds = 0;
 bool is_display_off = false;
@@ -64,7 +63,6 @@ void app_main(void) {
     u8g2_esp32_hal.bus.i2c.sda = 8;
     u8g2_esp32_hal.bus.i2c.scl = 9;
 
-    //u8g2_esp32_hal.bus.i2c.clk_speed = 400000;
 
     u8g2_esp32_hal_init(u8g2_esp32_hal);
     

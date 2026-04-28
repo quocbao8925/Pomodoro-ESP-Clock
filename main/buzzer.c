@@ -29,7 +29,7 @@ static void buzzer_task(void *arg) {
             
             switch (pattern) {
                 case BEEP_TEST:
-                    for (uint8_t i = 0; i < 8; i++) {
+                    for (uint32_t i = 0; i < 8; i++) {
                         ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
@@ -48,7 +48,7 @@ static void buzzer_task(void *arg) {
                     }
                     break;
                 case BEEP_POMODORO_DONE:
-                    for (uint8_t i = 0; i < 8; i++) {
+                    for (uint32_t i = 0; i < 8; i++) {
                         ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(80)); 
@@ -85,7 +85,7 @@ static void buzzer_task(void *arg) {
                     vTaskDelay(pdMS_TO_TICKS(200));
                     break;
                 case BEEP_TWICE:
-                    for (uint8_t i = 0; i < 2; i++) {
+                    for (uint32_t i = 0; i < 2; i++) {
                         ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, current_duty);
                         ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
                         vTaskDelay(pdMS_TO_TICKS(100)); 

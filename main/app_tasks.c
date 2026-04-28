@@ -228,7 +228,7 @@ char* http_get_weather(void) {
     esp_http_client_config_t config = {
         .url = url,
         .method = HTTP_METHOD_GET,
-        .timeout_ms = 5000,
+        .timeout_ms = 10000,
         .user_data = buffer,           // pass buffer via user_data
         .event_handler = _http_event_handler,
     };
@@ -262,11 +262,11 @@ void wifi_sync_task(void *pvParameter) {
                 sntp_init = true;
             }
             
-            uint8_t retry = 0;
+            uint32_t retry = 0;
             while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < 10) {
                 vTaskDelay(pdMS_TO_TICKS(1000));
             }
-            uint8_t api_retries = 0;
+            uint32_t api_retries = 0;
             while (api_retries < 2) {
                 char *json_data = http_get_weather();
                 if (json_data) { 
@@ -286,14 +286,14 @@ void wifi_sync_task(void *pvParameter) {
     }
 }
 
-void wake_up_display() {
+static inline void wake_up_display() {
     idle_seconds = 0; 
     if (is_display_off) {
         u8g2_SetPowerSave(&u8g2, 0); 
         is_display_off = false;
     }
 }
-
+bool moving_flag = false;
 void gyro_task(void *pvParameter) {
     bmi160_init();
     int16_t sleep_z = 0;   
@@ -308,6 +308,8 @@ void gyro_task(void *pvParameter) {
     while(1) {
         int16_t az = bmi160_read_accel_z(); 
         int16_t ax = bmi160_read_accel_x();
+
+        moving_flag = is_moving(az);
 
         if (is_display_off && !was_off) sleep_z = az;
         if (is_display_off && abs(az - sleep_z) > 1000) wake_up_display();
@@ -357,7 +359,8 @@ void gyro_task(void *pvParameter) {
         if (target_mode && !is_display_off) {
             load_ms += 200;
             uint16_t limit = (target_mode == 3) ? 5000 : 3000;
-            loading_progress = (target_mode == 3) ? ((load_ms * 100) / 5000) : ((load_ms * 100) / 3000 + 30);
+            loading_progress = (target_mode == 3) ? (load_ms / 50) : (load_ms / 30 + 30);
+            // equal loading_progress = (target_mode == 3) ? ((load_ms * 100) / 5000) : ((load_ms * 100) / 3000 + 30);
             
             if (load_ms >= limit) {
                 if (target_mode == 3) {
@@ -391,11 +394,12 @@ void gyro_task(void *pvParameter) {
 }
 
 uint8_t get_weather_icon_hex(uint16_t weather_code, bool is_night) {
-    if (weather_code >= 200 && weather_code < 700) return 0x43; 
-    else if (weather_code >= 700 && weather_code < 800) return 0x40; 
-    else if (weather_code == 800) return is_night ? 0x42 : 0x45;          
-    else if (weather_code == 801 || weather_code == 802) return is_night ? 0x42 : 0x41;          
+
+    if (weather_code == 801 || weather_code == 802) return is_night ? 0x42 : 0x41; 
     else if (weather_code == 803 || weather_code == 804) return is_night ? 0x42 : 0x40; 
+    else if (weather_code == 800) return is_night ? 0x42 : 0x45;          
+    else if (weather_code >= 200 && weather_code < 700) return 0x43;          
+    else if (weather_code >= 700 && weather_code < 800) return 0x40; 
     
     return 0x45; 
 }
@@ -428,7 +432,7 @@ void display_task(void *pvParameter) {
 
         if (now - last_tick >= pdMS_TO_TICKS(1000)) {
 
-            if (current_screen == 3) {
+            if (current_screen == 3 || moving_flag) {
                 idle_seconds = 0; 
             } else { 
                 idle_seconds++; 
@@ -439,7 +443,6 @@ void display_task(void *pvParameter) {
         if (idle_seconds > display_timeout_sec && !is_display_off) {
             u8g2_SetPowerSave(&u8g2, 1); 
             is_display_off = true;
-            bmi160_set_accel_lowpower(); // Put gyro in low-power mode when display sleeps
         }
 
         time_t now_time; 
@@ -474,7 +477,7 @@ void display_task(void *pvParameter) {
                     strncpy(sq.city, "OFFLINE", sizeof(sq.city));
                     sq.icon = 0;
                 }
-                draw_classic_squix(&u8g2, sq, my_pomo_5.is_running || my_pomo_25.is_running, is_serial_mode);
+                draw_classic_squix(&u8g2, &sq, my_pomo_5.is_running || my_pomo_25.is_running, is_serial_mode);
 
             } else if (current_screen == 1) {
                 draw_pomodoro_vertical(&u8g2, &my_pomo_25, true, loading_progress);

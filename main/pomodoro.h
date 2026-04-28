@@ -6,13 +6,13 @@
 #include "esp_timer.h"
 
 typedef struct {
+    esp_timer_handle_t timer_handle;
     uint8_t minutes;
     uint8_t seconds;
-    esp_timer_handle_t timer_handle;
     uint8_t target_minutes;
+    uint8_t flash_timer;
     bool is_running;
     bool is_break;
-    uint8_t flash_timer;
     bool finish_pomo;
 } pomodoro_t;
 
