@@ -30,7 +30,6 @@ extern uint8_t current_horizontal_ui;
 
 extern int settings_selection;
 
-void wake_up_display(void);
 void test_buzzer(void);
 
 #endif // GLOBALS_H

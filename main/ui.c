@@ -4,13 +4,13 @@
 #include <stdio.h> 
 
 
-void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer, bool is_serial) {
+void draw_classic_squix(u8g2_t *u8g2, squix_ui_t *data, bool is_running_timer, bool is_serial) {
     u8g2_ClearBuffer(u8g2);
     u8g2_SetFontDirection(u8g2, 0);
 
     // Split hour and minute strings
-    char hour_str[3] = {data.time[0], data.time[1], '\0'};
-    char min_str[3] = {data.time[3], data.time[4], '\0'};
+    char hour_str[3] = {data->time[0], data->time[1], '\0'};
+    char min_str[3] = {data->time[3], data->time[4], '\0'};
 
     // Divider line and frame
     u8g2_DrawVLine(u8g2, 52, 0, 64); 
@@ -21,9 +21,9 @@ void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer, bo
     u8g2_DrawStr(u8g2, 4, 28, hour_str);
     u8g2_DrawStr(u8g2, 4, 60, min_str);
 
-    if (!data.is_24h) {
+    if (!data->is_24h) {
         u8g2_SetFont(u8g2, u8g2_font_6x13B_tf); 
-        u8g2_DrawStr(u8g2, 40, 48,(data.is_pm ? "P" : "A"));
+        u8g2_DrawStr(u8g2, 40, 48,(data->is_pm ? "P" : "A"));
         u8g2_DrawStr(u8g2, 40, 60, "M");
     }
     if (is_running_timer) {
@@ -36,15 +36,15 @@ void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer, bo
     }
     // Right area: Weather and info
     u8g2_SetFont(u8g2, u8g2_font_6x10_tf);
-    u8g2_DrawStr(u8g2, 86, 14, data.date); 
+    u8g2_DrawStr(u8g2, 86, 14, data->date); 
 
     if (is_wifi_connected) {
         u8g2_SetFont(u8g2, u8g2_font_open_iconic_weather_2x_t);
-        u8g2_DrawGlyph(u8g2, 60, 24, data.icon); 
+        u8g2_DrawGlyph(u8g2, 60, 24, data->icon); 
 
         u8g2_SetFont(u8g2, u8g2_font_logisoso18_tf);
         char temp_buf[10];
-        snprintf(temp_buf, 10, "%d", data.temp);
+        snprintf(temp_buf, 10, "%d", data->temp);
         u8g2_DrawUTF8(u8g2, 58, 46, temp_buf);
         u8g2_SetFont(u8g2, u8g2_font_5x8_tf);
         u8g2_DrawUTF8(u8g2, 86, 46, "°C");
@@ -52,10 +52,10 @@ void draw_classic_squix(u8g2_t *u8g2, squix_ui_t data, bool is_running_timer, bo
         
 
         u8g2_SetFont(u8g2, u8g2_font_6x10_tf);
-        u8g2_DrawStr(u8g2, 86, 26, data.city); 
+        u8g2_DrawStr(u8g2, 86, 26, data->city); 
         
         char hum_buf[15];
-        snprintf(hum_buf, 15, "H: %d%%", data.humidity);
+        snprintf(hum_buf, 15, "H: %d%%", data->humidity);
         u8g2_DrawStr(u8g2, 58, 62, hum_buf);   
         
     } else {

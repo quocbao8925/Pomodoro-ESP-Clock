@@ -132,3 +132,9 @@ int16_t bmi160_read_accel_z(void) {
     sw_i2c_stop();
     return (int16_t)((msb << 8) | lsb);
 }
+int16_t old_accel_z = 0;
+bool is_moving(int16_t az) {
+    bool moving = (abs(az - old_accel_z) > 1000);
+    old_accel_z = az;
+    return moving;
+}
