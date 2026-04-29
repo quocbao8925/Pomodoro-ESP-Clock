@@ -56,7 +56,7 @@ To enable weather updates, you need to configure your [OpenWeatherMap](https://o
    
 ## 🔗 Related 
 This firmware is designed to work with the configuration web and u8g2 library. </br>
-POMODORO Web's URL: [Link to web](https://pomo-config.vercel.app) </br>
+POMODORO Web's URL: [Link to web](https://pomoconfig.vercel.app) </br>
 U8G2: [u8g2 library](https://github.com/olikraus/u8g2)
 
 ## Inspired By
