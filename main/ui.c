@@ -235,8 +235,7 @@ void draw_wifi_config_ui(u8g2_t *u8g2, bool is_serial_mode, uint8_t countdown, u
 
     u8g2_SetFont(u8g2, u8g2_font_6x10_tf);
     u8g2_DrawStr(u8g2, 126, 56, "CONFIG URL:"); // 128-2=126, 64-8=56
-    u8g2_DrawStr(u8g2, 126, 46, "quocbao8925.github.io");
-    u8g2_DrawStr(u8g2, 126, 36, "/pomodoro/");
+    u8g2_DrawStr(u8g2, 126, 46, "pomoconfig.vercel.app");
     u8g2_DrawLine(u8g2, 0, 32, 128, 32); // Box around "CONFIG URL"
     // u8g2_SetFont(u8g2, u8g2_font_logisoso16_tf);
     // u8g2_DrawStr(u8g2, 112, 28, "WI"); // 128-16=112, 64-36=28
