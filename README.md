@@ -54,10 +54,9 @@ To enable weather updates, you need to configure your [OpenWeatherMap](https://o
 3. Enter your Latitude, Longitude, and OpenWeatherMap API Key.
 4. Save (S) and exit (Q).
    
-## 🔗 Related Repository
+## 🔗 Related 
 This firmware is designed to work with the configuration web and u8g2 library. </br>
-POMODORO Web's URL: [Link to web](https://quocbao8925.github.io/pomodoro/) </br>
-Repo URL: [Link to Repo](https://github.com/quocbao8925/pomodoro) </br>
+POMODORO Web's URL: [Link to web](https://pomo-config.vercel.app) </br>
 U8G2: [u8g2 library](https://github.com/olikraus/u8g2)
 
 ## Inspired By
