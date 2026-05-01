@@ -7,7 +7,7 @@ A highly optimized, gyroscope smart clock and Pomodoro timer built with the **ES
 * **Gesture Control:** Uses a **BMI160** 6-axis IMU to navigate menus and start timers simply by flipping device.
 * **Pomodoro Timer:** Built-in 25-minute focus and 5-minute break timers with automated buzzer notifications.
 * **Internet Time & Weather:** Real-time synchronization via SNTP and live weather updates via the OpenWeatherMap API.
-* **Web Serial Configuration:** Say goodbye to clunky WiFi AP captive portals! Configure WiFi credentials, buzzer volume, time formats, and screen timeouts directly via a secure USB Web Serial HTML interface.
+* **Web Serial Configuration:** Configure WiFi credentials, buzzer volume, time formats, and screen timeouts directly via a secure USB Web Serial HTML interface.
 * **Ultra-Low Power Optimization:**
   * **Adaptive Polling:** The IMU polling rate dynamically drops when the screen is off to conserve battery.
   * **NVS Wear-Leveling:** Device settings are safely stored in Non-Volatile Storage with optimized commit triggers.
