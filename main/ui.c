@@ -6,6 +6,7 @@
 
 void draw_classic_squix(u8g2_t *u8g2, squix_ui_t *data, bool is_running_timer, bool is_serial) {
     u8g2_ClearBuffer(u8g2);
+    u8g2_SetContrast(u8g2, 10);
     u8g2_SetFontDirection(u8g2, 0);
 
     // Split hour and minute strings
@@ -82,6 +83,7 @@ void draw_classic_squix(u8g2_t *u8g2, squix_ui_t *data, bool is_running_timer, b
 
 void draw_pomodoro_vertical(u8g2_t *u8g2, pomodoro_t *pomo, bool rotate, uint8_t loading_pct) {
     u8g2_ClearBuffer(u8g2);
+    u8g2_SetContrast(u8g2, 10);
     u8g2_DrawFrame(u8g2, 0, 0, 128, 64); 
     u8g2_SetFontDirection(u8g2, rotate ? 3 : 1); 
     
@@ -231,6 +233,7 @@ void draw_pomodoro_vertical(u8g2_t *u8g2, pomodoro_t *pomo, bool rotate, uint8_t
 
 void draw_wifi_config_ui(u8g2_t *u8g2, bool is_serial_mode, uint8_t countdown, uint8_t loading_pct) {
     u8g2_ClearBuffer(u8g2);
+    u8g2_SetContrast(u8g2, 10);
     u8g2_SetFontDirection(u8g2, 2); 
 
     u8g2_SetFont(u8g2, u8g2_font_6x10_tf);

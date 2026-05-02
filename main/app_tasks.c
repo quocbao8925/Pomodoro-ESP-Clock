@@ -139,7 +139,10 @@ static void wifi_event_handler(void* arg, esp_event_base_t base, int32_t id, voi
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
-        if (s_retry_num++ < 5) esp_wifi_connect();
+        if (s_retry_num++ < 2) {
+            esp_wifi_connect();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
         else xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
     } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
         s_retry_num = 0;
@@ -190,7 +193,9 @@ bool connect_wifi_helper(uint32_t timeout_ms) {
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     esp_wifi_start();
     
-    esp_wifi_set_max_tx_power(78);
+    esp_wifi_set_max_tx_power(52); // Limit TX power to save energy
+
+    vTaskDelay(pdMS_TO_TICKS(500)); // Short delay to allow WiFi to start
 
     EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAIL_BIT, pdFALSE, pdFALSE, pdMS_TO_TICKS(timeout_ms));
     return (bits & WIFI_CONNECTED_BIT);
@@ -253,19 +258,26 @@ void wifi_sync_task(void *pvParameter) {
 
     while(1) {
         if (is_serial_mode) { vTaskDelay(pdMS_TO_TICKS(5000)); continue; }
-        if (connect_wifi_helper(20000)) {
+        if (connect_wifi_helper(15000)) {
             is_wifi_connected = true;
+
+            vTaskDelay(pdMS_TO_TICKS(2000)); // Short delay to ensure stable connection before syncing time and fetching weather
             if (!sntp_init) {
                 esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-                esp_sntp_setservername(0, "pool.ntp.org");
+                esp_sntp_setservername(0, "vn.pool.ntp.org");
+                esp_sntp_setservername(1, "asia.pool.ntp.org");
+                esp_sntp_setservername(2, "pool.ntp.org");
                 esp_sntp_init();
                 sntp_init = true;
             }
             
             uint32_t retry = 0;
-            while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < 10) {
-                vTaskDelay(pdMS_TO_TICKS(1000));
+            while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < 15) {
+                vTaskDelay(pdMS_TO_TICKS(2000));
             }
+            
+            vTaskDelay(pdMS_TO_TICKS(1500));
+
             uint32_t api_retries = 0;
             while (api_retries < 2) {
                 char *json_data = http_get_weather();
