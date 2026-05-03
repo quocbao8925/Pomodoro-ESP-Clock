@@ -1,6 +1,10 @@
 # 🍅 POMODORO ESPsmartCLOCK
 
-A highly optimized, gyroscope smart clock and Pomodoro timer built with the **ESP32-C3 Mini** and **ESP-IDF**. This project focuses on deep system optimization, dynamic power management, and a modern Web Serial interface for configuration.
+A highly optimized, gyroscope smart clock and Pomodoro timer built with the **ESP32-C3 Mini** and **ESP-IDF**. This project focuses on deep system optimization, dynamic power management, and a modern Web Serial interface for configuration. 
+
+## Preview 
+| <img width="1280" height="1280" alt="image" src="https://github.com/user-attachments/assets/e67d5d98-d4dc-4124-806e-9b2ea10503ab" /> | <img width="1280" height="1280" alt="image" src="https://github.com/user-attachments/assets/5dae383b-35c3-40fe-a8d5-54b7339f79ad" /> |
+| -------- | -------- |
 
 ## Key Features
 
